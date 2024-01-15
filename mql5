@@ -1,0 +1,92 @@
+
+//+------------------------------------------------------------------+
+//|                                        Momentum Maverick MT5    |
+//|                                        forexroboteasy.com        |
+//|                                        Forex Robot Easy Team    |
+//+------------------------------------------------------------------+
+
+// Define input parameters
+input int TradeVolume = 0.1;                        // Trade volume
+input double TakeProfitPercentage = 1.0;            // Take profit percentage
+input double StopLossPercentage = 1.0;              // Stop loss percentage
+input double TrailingStopPercentage = 0.5;          // Trailing stop percentage
+input int MaxConcurrentTrades = 5;                  // Maximum concurrent trades
+
+// Define global variables
+int totalTrades = 0;                                // Total number of trades executed
+int activeTrades = 0;                               // Number of active trades
+
+//+------------------------------------------------------------------+
+//| Expert initialization function                                   |
+//+------------------------------------------------------------------+
+int OnInit()
+{
+    // Set up trading account
+    if (!Trade.SetupAccount())
+    {
+        Print('Failed to set up trading account!');
+        return INIT_FAILED;
+    }
+    
+    return INIT_SUCCEEDED;
+}
+
+//+------------------------------------------------------------------+
+//| Expert deinitialization function                                 |
+//+------------------------------------------------------------------+
+void OnDeinit(const int reason)
+{
+    // Close all active trades
+    Trade.CloseAll();
+}
+
+//+------------------------------------------------------------------+
+//| Expert tick function                                             |
+//+------------------------------------------------------------------+
+void OnTick()
+{
+    // Check if maximum concurrent trades limit reached
+    if (activeTrades >= MaxConcurrentTrades)
+        return;
+    
+    // Loop through all forex symbols
+    for (int i = 0; i < SymbolsTotal(true); i++)
+    {
+        string symbol = SymbolName(i, true);
+        
+        // Calculate momentum of the symbol
+        double momentum = CalculateMomentum(symbol);
+        
+        // Check if momentum is positive
+        if (momentum > 0)
+        {
+            // Open a buy trade
+            if (Trade.Buy(symbol, TradeVolume, Ask, Ask + (Ask * TakeProfitPercentage), Ask - (Ask * StopLossPercentage), Ask - (Ask * TrailingStopPercentage)))
+            {
+                totalTrades++;
+                activeTrades++;
+            }
+        }
+        // Check if momentum is negative
+        else if (momentum < 0)
+        {
+            // Open a sell trade
+            if (Trade.Sell(symbol, TradeVolume, Bid, Bid - (Bid * TakeProfitPercentage), Bid + (Bid * StopLossPercentage), Bid + (Bid * TrailingStopPercentage)))
+            {
+                totalTrades++;
+                activeTrades++;
+            }
+        }
+    }
+}
+
+//+------------------------------------------------------------------+
+//| Calculate momentum of a forex symbol                             |
+//+------------------------------------------------------------------+
+double CalculateMomentum(string symbol)
+{
+    // Perform momentum calculation logic here
+    // ...
+    
+    return 0.5; // Placeholder value for demonstration purposes
+}
